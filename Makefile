@@ -1,4 +1,3 @@
-COVERALLS_TOKEN := "IVQwNa8dypGgtaLmBkFSoBcRcCl0tlqui"
 GITHUB_API_TOKEN := ""
 
 .PHONY: build restore test cover vet lint
@@ -30,8 +29,7 @@ vet:
 	go vet `go list ./... | grep -v /vendor/`
 
 cover-remote:
-	go get code.google.com/p/go.tools/cmd/cover
-	go get github.com/modocache/gover
+	go get -u github.com/modocache/gover
 	go get -u github.com/mattn/goveralls
 	go get -u github.com/golang/dep/cmd/dep
 	dep ensure
