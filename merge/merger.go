@@ -23,8 +23,9 @@ type (
 		SupportedSubtitleExtensions []string
 		MergedMovieExtension        string
 
-		movies map[string]movie
-		log    Logger
+		movies     map[string]movie
+		log        Logger
+		fileWalker FileWalker
 	}
 
 	movie struct {
@@ -37,10 +38,13 @@ type (
 // NewMerger instantiates a new Merger.
 func NewMerger(supportedMovieExtensions,
 	supportedSubtitleExtensions []string,
-	mergedMovieExtension string) Merger {
+	mergedMovieExtension string,
+	logger Logger,
+	fileWalker FileWalker) Merger {
 
 	return &mergerImpl{
-		log: NewLogger(),
+		log:                         logger,
+		fileWalker:                  fileWalker,
 		SupportedMovieExtensions:    supportedMovieExtensions,
 		SupportedSubtitleExtensions: supportedSubtitleExtensions,
 		MergedMovieExtension:        mergedMovieExtension,
@@ -58,10 +62,10 @@ func (c *mergerImpl) Run(path string) error {
 
 	c.movies = make(map[string]movie)
 	subbedMovies := []string{}
-	err := filepath.Walk(path, c.scan)
+	err := c.fileWalker.Walk(path, c.scan)
 
 	if err != nil {
-		c.log.Printf("filepath.Walk() returned %v\n", err)
+		c.log.Printf("FileWalker returned %v\n", err)
 		return err
 	}
 

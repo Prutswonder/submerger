@@ -34,5 +34,5 @@ cover-remote:
 	go get -u github.com/mattn/goveralls
 	go get -u github.com/golang/dep/cmd/dep
 	dep ensure
-	go test -covermode=count -coverprofile=cover.tmp
+	go test -covermode=count -coverprofile=cover.tmp ./merge
 	goveralls -service travis-ci -coverprofile cover.tmp
