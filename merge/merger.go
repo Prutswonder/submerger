@@ -26,6 +26,7 @@ type (
 		movies     map[string]movie
 		log        Logger
 		fileWalker FileWalker
+		commander  Commander
 	}
 
 	movie struct {
@@ -40,11 +41,13 @@ func NewMerger(supportedMovieExtensions,
 	supportedSubtitleExtensions []string,
 	mergedMovieExtension string,
 	logger Logger,
-	fileWalker FileWalker) Merger {
+	fileWalker FileWalker,
+	commander Commander) Merger {
 
 	return &mergerImpl{
 		log:                         logger,
 		fileWalker:                  fileWalker,
+		commander:                   commander,
 		SupportedMovieExtensions:    supportedMovieExtensions,
 		SupportedSubtitleExtensions: supportedSubtitleExtensions,
 		MergedMovieExtension:        mergedMovieExtension,
@@ -145,12 +148,12 @@ func (c *mergerImpl) merge(pathWithoutExtension string, movie movie, verbose boo
 
 	args = append(args, movie.moviePath, movie.subtitlePath, "-o", subbedMoviePath)
 
-	cmd := exec.Command("mkvmerge", args...)
+	cmd := c.commander.Command("mkvmerge", args...)
 
 	// In order to run MKV-Merge properly we need to ensure that the LC_ALL environment
 	// variable is set.
 	env := replaceOrAppend(os.Environ(), "LC_ALL=", "LC_ALL=C")
-	cmd.Env = env
+	cmd.SetEnvironment(env)
 
 	c.log.Printf("Merging to %s...\n", subbedMoviePath)
 

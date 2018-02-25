@@ -29,11 +29,13 @@ func runMerge(args []string) {
 
 	logger := merge.NewLogger()
 	fileWalker := merge.NewFileWalker()
+	commander := merge.NewCommander()
 	merger := merge.NewMerger(supportedMovieExtensions,
 		supportedSubtitleExtensions,
 		mergedMovieExtension,
 		logger,
 		fileWalker,
+		commander,
 	)
 	if err := merger.Run(path); err != nil {
 		panic(err)
