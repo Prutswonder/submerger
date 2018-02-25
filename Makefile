@@ -33,6 +33,7 @@ cover-remote:
 	go get -u github.com/mattn/goveralls
 	go get -u github.com/golang/dep/cmd/dep
 	dep ensure
-	go test `go list ./... | grep -v /vendor/`
+	go test -coverprofile=merge.coverprofile ./merge
+	go test -coverprofile=cmd.coverprofile ./cmd
 	gover
 	goveralls -service travis-ci -coverprofile gover.coverprofile

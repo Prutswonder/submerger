@@ -24,10 +24,9 @@ _testmain.go
 *.prof
 
 vendor
-cover.tmp
 .idea
 .vscode
 test
 submerger
 submerger-nas
-gover.coverprofile
+*.coverprofile
