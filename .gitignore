@@ -30,3 +30,5 @@ test
 submerger
 submerger-nas
 *.coverprofile
+coverage
+debug
