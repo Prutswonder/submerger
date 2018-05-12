@@ -13,12 +13,13 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestRun(t *testing.T) {
+func TestMergerRun(t *testing.T) {
 	movieExt := []string{".movie-ext"}
 	subExt := []string{".sub-ext"}
 	logger := &mockLogger{}
 	fileWalker := &mockFileWalker{}
 	commander := &mockCommander{}
+	dirInfo := &mockFileInfo{}
 	fileInfo := &mockFileInfo{}
 	cmd := &mockCmd{}
 	stdOut := ioutil.NopCloser(bytes.NewReader([]byte("")))
@@ -26,6 +27,7 @@ func TestRun(t *testing.T) {
 
 	logger.On("Printf", mock.Anything, mock.Anything).Return(nil)
 	logger.On("Println", mock.Anything, mock.Anything).Return(nil)
+	dirInfo.On("IsDir", mock.Anything).Return(true)
 	fileInfo.On("IsDir", mock.Anything).Return(false)
 	cmd.On("SetEnvironment", mock.Anything).Once()
 	cmd.On("StdoutPipe").Return(stdOut, nil).Once()
@@ -37,6 +39,7 @@ func TestRun(t *testing.T) {
 		Run(func(a mock.Arguments) {
 			var scanErr error
 			scanFn := a.Get(1).(filepath.WalkFunc)
+			scanFn("/path/to", dirInfo, scanErr)
 			scanFn("/path/to/a-movie-without-subs.movie-ext", fileInfo, scanErr)
 			scanFn("/path/to/a-movie-with-subs.movie-ext", fileInfo, scanErr)
 			scanFn("/path/to/a-movie-with-subs.sub-ext", fileInfo, scanErr)
@@ -53,7 +56,7 @@ func TestRun(t *testing.T) {
 		"/path/to/a-movie-with-subs_subbed.movie-ext",
 	}).Return(cmd).Once()
 
-	sut := merge.NewMerger(movieExt, subExt, "_subbed.movie-ext", logger, fileWalker, commander)
+	sut := merge.NewMerger(movieExt, subExt, "_subbed.movie-ext", logger, fileWalker, commander, false)
 
 	// Act
 	err := sut.Run("somepath")
@@ -64,7 +67,7 @@ func TestRun(t *testing.T) {
 	cmd.AssertExpectations(t)
 }
 
-func TestRun_FileWalkerError(t *testing.T) {
+func TestMergerRun_FileWalkerError(t *testing.T) {
 	movieExt := []string{}
 	subExt := []string{}
 	logger := &mockLogger{}
@@ -76,16 +79,16 @@ func TestRun_FileWalkerError(t *testing.T) {
 	logger.On("Println", mock.Anything, mock.Anything).Return(nil)
 	fileWalker.On("Walk", mock.Anything, mock.Anything).Return(expectedErr).Once()
 
-	sut := merge.NewMerger(movieExt, subExt, "_sub", logger, fileWalker, commander)
+	sut := merge.NewMerger(movieExt, subExt, "_sub", logger, fileWalker, commander, true)
 
 	// Act
-	actualErr := sut.Run("somepath")
+	actualErr := sut.Run("")
 
 	assert.Equal(t, expectedErr, actualErr)
 	fileWalker.AssertExpectations(t)
 }
 
-func TestRun_PipeErrors(t *testing.T) {
+func TestMergerRun_PipeErrors(t *testing.T) {
 	movieExt := []string{".movie-ext"}
 	subExt := []string{".sub-ext"}
 	logger := &mockLogger{}
@@ -120,7 +123,7 @@ func TestRun_PipeErrors(t *testing.T) {
 		"/path/to/a-movie-with-subs_subbed.movie-ext",
 	}).Return(cmd)
 
-	sut := merge.NewMerger(movieExt, subExt, "_subbed.movie-ext", logger, fileWalker, commander)
+	sut := merge.NewMerger(movieExt, subExt, "_subbed.movie-ext", logger, fileWalker, commander, false)
 
 	// Act 1: StdOut
 	cmd.On("StdoutPipe").Return(stdOut, expectedErr).Once()
@@ -175,7 +178,7 @@ func TestRun_CommandErrors(t *testing.T) {
 		"/path/to/a-movie-with-subs_subbed.movie-ext",
 	}).Return(cmd)
 
-	sut := merge.NewMerger(movieExt, subExt, "_subbed.movie-ext", logger, fileWalker, commander)
+	sut := merge.NewMerger(movieExt, subExt, "_subbed.movie-ext", logger, fileWalker, commander, false)
 
 	// Act 1: Tool exit error
 	cmd.On("Start", mock.Anything).Return(nil).Once()

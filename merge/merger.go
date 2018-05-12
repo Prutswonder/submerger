@@ -42,7 +42,8 @@ func NewMerger(supportedMovieExtensions,
 	mergedMovieExtension string,
 	logger Logger,
 	fileWalker FileWalker,
-	commander Commander) Merger {
+	commander Commander,
+	verbose bool) Merger {
 
 	return &mergerImpl{
 		log:                         logger,
@@ -51,6 +52,7 @@ func NewMerger(supportedMovieExtensions,
 		SupportedMovieExtensions:    supportedMovieExtensions,
 		SupportedSubtitleExtensions: supportedSubtitleExtensions,
 		MergedMovieExtension:        mergedMovieExtension,
+		Verbose:                     verbose,
 	}
 }
 
@@ -103,9 +105,9 @@ func (c *mergerImpl) scan(path string, fileInfo os.FileInfo, err error) error {
 
 	refPath := strings.ToLower(path)
 	ext := filepath.Ext(path)
-	keyPath := strings.TrimSuffix(path, ext)
+	keyPath := strings.TrimSuffix(path, c.MergedMovieExtension)
+	keyPath = strings.TrimSuffix(keyPath, ext)
 	keyPath = strings.TrimSuffix(keyPath, ".en")
-	keyPath = strings.TrimSuffix(keyPath, "_subs")
 
 	switch {
 	case strings.HasSuffix(refPath, c.MergedMovieExtension):

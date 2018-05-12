@@ -36,6 +36,7 @@ func runMerge(args []string) {
 		logger,
 		fileWalker,
 		commander,
+		false,
 	)
 	if err := merger.Run(path); err != nil {
 		panic(err)

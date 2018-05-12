@@ -19,20 +19,25 @@ type (
 		SupportedSubtitleExtensions []string
 		MergedMovieExtension        string
 
-		movies map[string]movie
-		log    Logger
+		movies     map[string]movie
+		log        Logger
+		fileWalker FileWalker
 	}
 )
 
 // NewScanner instantiates a new Scanner.
 func NewScanner(supportedMovieExtensions,
 	supportedSubtitleExtensions []string,
-	mergedMovieExtension string) Scanner {
+	mergedMovieExtension string,
+	logger Logger,
+	fileWalker FileWalker) Scanner {
 
 	return &scannerImpl{
-		log: NewLogger(),
+		log:                         logger,
+		fileWalker:                  fileWalker,
 		SupportedMovieExtensions:    supportedMovieExtensions,
 		SupportedSubtitleExtensions: supportedSubtitleExtensions,
+		MergedMovieExtension:        mergedMovieExtension,
 	}
 }
 
@@ -44,7 +49,7 @@ func (c *scannerImpl) Run(path string) error {
 	c.Path = path
 	c.movies = make(map[string]movie)
 	oldMovies := []string{}
-	err := filepath.Walk(path, c.scan)
+	err := c.fileWalker.Walk(path, c.scan)
 
 	if err != nil {
 		c.log.Printf("filepath.Walk(%v) returned %v\n", path, err)
@@ -78,9 +83,9 @@ func (c *scannerImpl) scan(path string, fileInfo os.FileInfo, err error) error {
 
 	refPath := strings.ToLower(path)
 	ext := filepath.Ext(path)
-	keyPath := strings.TrimSuffix(path, ext)
+	keyPath := strings.TrimSuffix(path, c.MergedMovieExtension)
+	keyPath = strings.TrimSuffix(keyPath, ext)
 	keyPath = strings.TrimSuffix(keyPath, ".en")
-	keyPath = strings.TrimSuffix(keyPath, "_subs")
 
 	switch {
 	case strings.HasSuffix(refPath, c.MergedMovieExtension):

@@ -18,7 +18,11 @@ var (
 				path = args[0]
 			}
 
-			scanner := merge.NewScanner(supportedMovieExtensions, supportedSubtitleExtensions, mergedMovieExtension)
+			logger := merge.NewLogger()
+			fileWalker := merge.NewFileWalker()
+			scanner := merge.NewScanner(supportedMovieExtensions, supportedSubtitleExtensions, mergedMovieExtension,
+				logger, fileWalker)
+
 			if err := scanner.Run(path); err != nil {
 				panic(err)
 			}
